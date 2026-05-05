@@ -16,7 +16,6 @@ export default function AuthPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       if (mode === "register") {
         setStatus("Generating encryption keys…");
@@ -33,7 +32,7 @@ export default function AuthPage() {
         const user = res.data.user || { username };
         const hasKeys = await hasKeyPair(username);
         if (!hasKeys) {
-          setError("No encryption keys found on this device. Please register again.");
+          setError("No keys found. Please register again on this device.");
           setLoading(false);
           setStatus("");
           return;
@@ -49,65 +48,48 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo">
-          <div className="logo-mark">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"radial-gradient(ellipse at 50% 0%, rgba(0,212,170,0.08) 0%, transparent 60%), #0a0c10", padding:"24px" }}>
+      <div style={{ width:"100%", maxWidth:"400px", background:"#111318", border:"1px solid rgba(255,255,255,0.1)", borderRadius:"20px", padding:"36px", boxShadow:"0 24px 64px rgba(0,0,0,0.5)" }}>
+        
+        <div style={{ display:"flex", alignItems:"center", gap:"14px", marginBottom:"28px" }}>
+          <div style={{ width:"48px", height:"48px", borderRadius:"14px", background:"linear-gradient(135deg, #00d4aa, #00896e)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <span style={{ fontSize:"22px" }}>🔒</span>
           </div>
           <div>
-            <h1>WhisperBox</h1>
-            <p className="auth-tagline">End-to-end encrypted messaging</p>
+            <h1 style={{ fontSize:"22px", fontWeight:700, color:"#e2e4ea", margin:0 }}>WhisperBox</h1>
+            <p style={{ fontSize:"11px", color:"#7c8096", margin:0 }}>End-to-end encrypted messaging</p>
           </div>
         </div>
 
-        <div className="auth-tabs">
-          <button className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setError(""); }}>Sign In</button>
-          <button className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setError(""); }}>Create Account</button>
+        <div style={{ display:"flex", background:"#181b22", borderRadius:"8px", padding:"3px", marginBottom:"24px", gap:"3px" }}>
+          <button onClick={() => { setMode("login"); setError(""); }} style={{ flex:1, padding:"8px", border:"none", borderRadius:"6px", background: mode==="login" ? "#111318" : "transparent", color: mode==="login" ? "#e2e4ea" : "#7c8096", cursor:"pointer", fontSize:"13px", fontWeight:500 }}>Sign In</button>
+          <button onClick={() => { setMode("register"); setError(""); }} style={{ flex:1, padding:"8px", border:"none", borderRadius:"6px", background: mode==="register" ? "#111318" : "transparent", color: mode==="register" ? "#e2e4ea" : "#7c8096", cursor:"pointer", fontSize:"13px", fontWeight:500 }}>Create Account</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="field">
-            <label>Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. priscy"
-              required
-              autoComplete="username"
-              disabled={loading}
-            />
+        <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:"6px" }}>
+            <label style={{ fontSize:"11px", fontWeight:600, color:"#7c8096", textTransform:"uppercase", letterSpacing:"0.04em" }}>Username</label>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. priscy" required disabled={loading}
+              style={{ padding:"10px 14px", border:"1px solid rgba(255,255,255,0.1)", borderRadius:"8px", background:"#181b22", color:"#e2e4ea", fontSize:"14px", outline:"none" }} />
           </div>
-          <div className="field">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
-              disabled={loading}
-            />
+          <div style={{ display:"flex", flexDirection:"column", gap:"6px" }}>
+            <label style={{ fontSize:"11px", fontWeight:600, color:"#7c8096", textTransform:"uppercase", letterSpacing:"0.04em" }}>Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required disabled={loading}
+              style={{ padding:"10px 14px", border:"1px solid rgba(255,255,255,0.1)", borderRadius:"8px", background:"#181b22", color:"#e2e4ea", fontSize:"14px", outline:"none" }} />
           </div>
 
-          {error && <div className="auth-error">{error}</div>}
-          {status && <div className="auth-status"><span className="status-dot" />{status}</div>}
+          {error && <div style={{ padding:"10px 14px", borderRadius:"8px", background:"rgba(255,92,92,0.1)", border:"1px solid rgba(255,92,92,0.2)", color:"#ff5c5c", fontSize:"13px" }}>{error}</div>}
+          {status && <div style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"13px", color:"#00d4aa" }}><span style={{ width:"7px", height:"7px", borderRadius:"50%", background:"#00d4aa", display:"inline-block" }}></span>{status}</div>}
 
-          <button type="submit" className="btn-auth" disabled={loading}>
+          <button type="submit" disabled={loading}
+            style={{ padding:"12px", border:"none", borderRadius:"8px", background:"linear-gradient(135deg, #00d4aa, #00a882)", color:"#000", fontSize:"14px", fontWeight:700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1 }}>
             {loading ? "Please wait…" : mode === "register" ? "Create Account & Generate Keys" : "Sign In"}
           </button>
         </form>
 
-        <div className="auth-note">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          {mode === "register"
-            ? "Your private key is generated locally and never sent to our servers."
-            : "Messages are decrypted only on your device."}
-        </div>
+        <p style={{ marginTop:"16px", fontSize:"11px", color:"#454858", textAlign:"center" }}>
+          {mode === "register" ? "🔒 Private key generated locally — never sent to servers." : "🔒 Messages decrypted only on your device."}
+        </p>
       </div>
     </div>
   );
