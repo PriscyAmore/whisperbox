@@ -29,17 +29,15 @@ export default function AuthPage() {
         const { publicKeyBase64 } = await generateKeyPair(username);
         setStatus("Creating account…");
         const res = await register(username, password, publicKeyBase64);
-        const access_token = res.data.access_token || res.data.token;
-        const user = res.data.user || { username };
+        const { access_token, user } = res.data;
         signIn(user, access_token);
       } else {
         setStatus("Authenticating…");
         const res = await login(username, password);
-        const access_token = res.data.access_token || res.data.token;
-        const user = res.data.user || { username };
+        const { access_token, user } = res.data;
         const hasKeys = await hasKeyPair(username);
         if (!hasKeys) {
-          setError("No keys found on this device. Please register again.");
+          setError("No encryption keys found on this device. Please register again.");
           setLoading(false);
           setStatus("");
           return;
@@ -48,8 +46,13 @@ export default function AuthPage() {
       }
     } catch (err) {
       const detail = err.response?.data?.detail;
-const errorMsg = Array.isArray(detail) ? detail[0]?.msg || "Validation error" : (typeof detail === "string" ? detail : err.message || "Something went wrong");
-setError(errorMsg);
+      const msg = Array.isArray(detail)
+        ? detail[0]?.msg || "Validation error"
+        : typeof detail === "string"
+        ? detail
+        : err.message || "Something went wrong";
+      setError(msg);
+      setStatus("");
     } finally {
       setLoading(false);
     }
