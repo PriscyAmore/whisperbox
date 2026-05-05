@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
 
 const AuthContext = createContext(null);
 
@@ -11,7 +10,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("wb_token");
     const savedUser = localStorage.getItem("wb_user");
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+      try { setUser(JSON.parse(savedUser)); } catch {}
     }
     setLoading(false);
   }, []);
