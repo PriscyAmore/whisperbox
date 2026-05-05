@@ -47,8 +47,9 @@ export default function AuthPage() {
         signIn(user, access_token);
       }
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || "Something went wrong");
-      setStatus("");
+      const detail = err.response?.data?.detail;
+const errorMsg = Array.isArray(detail) ? detail[0]?.msg || "Validation error" : (typeof detail === "string" ? detail : err.message || "Something went wrong");
+setError(errorMsg);
     } finally {
       setLoading(false);
     }
