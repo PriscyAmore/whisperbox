@@ -6,7 +6,7 @@ import { encryptMessage, decryptMessage, deleteKeys } from "../utils/crypto";
 export default function ChatPage() {
   const { user, signOut } = useAuth();
   const [conversations, setConversations] = useState([]);
-  const [activeConvo, setActiveConvo] = useState(null); // { userId, username }
+  const [activeConvo, setActiveConvo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,11 +37,9 @@ export default function ChatPage() {
       const res = await getConversation(userId);
       const raw = res.data || [];
       if (!Array.isArray(raw)) { setMessages([]); return; }
-      const myId = user.id;
       const decrypted = await Promise.all(raw.map(async (msg) => {
         const isSender = msg.from_user_id === user.id;
-        let payload = msg.payload;
-        if (typeof payload === "string") { try { payload = JSON.parse(payload); } catch { payload = {}; } }
+        const payload = msg.payload || {};
         const normalizedPayload = {
           ciphertext: payload.ciphertext,
           iv: payload.iv,
@@ -53,8 +51,8 @@ export default function ChatPage() {
       }));
       setMessages(decrypted);
     } catch (e) {
-      if (e?.response?.status !== 404) setError("Failed to load messages");
-      else setMessages([]);
+      if (e?.response?.status === 404) setMessages([]);
+      else setError("Failed to load messages");
     } finally {
       setLoadingMsgs(false);
     }
@@ -83,7 +81,7 @@ export default function ChatPage() {
   }, [searchQuery, user.id]);
 
   const openConvo = (u) => {
-    setActiveConvo({ userId: u.id, username: u.username || u.display_name });
+    setActiveConvo({ userId: u.id || u.user_id, username: u.username || u.display_name });
     setSearchQuery("");
     setSearchResults([]);
     setMessages([]);
@@ -161,7 +159,7 @@ export default function ChatPage() {
               <div style={{ padding:"16px", fontSize:"12px", color:"#454858", textAlign:"center" }}>Search for a user to start chatting</div>
             )}
             {!searchQuery && conversations.map(c => (
-              <button key={c.user_id} onClick={() => openConvo({ id: c.user_id, username: c.username || c.display_name })}
+              <button key={c.user_id} onClick={() => openConvo(c)}
                 style={{ display:"flex", alignItems:"center", gap:"10px", width:"100%", padding:"10px 16px", background: activeConvo?.userId === c.user_id ? "rgba(0,212,170,0.08)" : "transparent", border:"none", color:"#e2e4ea", cursor:"pointer", textAlign:"left", fontSize:"13px" }}>
                 {avatar(30, (c.username || c.display_name)[0].toUpperCase())}
                 <div>
@@ -172,7 +170,7 @@ export default function ChatPage() {
             ))}
           </div>
           {isMobile && (
-            <button onClick={() => { setActiveConvo(null); setShowSidebar(false); }}
+            <button onClick={() => setShowSidebar(false)}
               style={{ margin:"10px 16px", padding:"10px", background:"#00d4aa", border:"none", borderRadius:"8px", color:"#000", fontWeight:700, cursor:"pointer", fontSize:"14px" }}>
               Start Chat
             </button>
@@ -214,7 +212,7 @@ export default function ChatPage() {
                 {loadingMsgs && messages.length === 0 && (
                   <div style={{ textAlign:"center", fontSize:"12px", color:"#454858", padding:"20px" }}>Decrypting messages…</div>
                 )}
-                {messages.length === 0 && !loadingMsgs && (
+                {!loadingMsgs && messages.length === 0 && (
                   <div style={{ textAlign:"center", fontSize:"12px", color:"#454858", padding:"20px" }}>No messages yet. Say hello!</div>
                 )}
                 {messages.map((msg, i) => (
