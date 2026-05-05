@@ -125,119 +125,104 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="chat-layout">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <div className="sidebar-brand">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <span>WhisperBox</span>
-          </div>
-          <button className="icon-btn" onClick={handleLogout} title="Sign out">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-          </button>
+    <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#0a0c10", color: "#e2e4ea", fontFamily: "sans-serif" }}>
+      
+      {/* Sidebar */}
+      <div style={{ width: "260px", background: "#111318", borderRight: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <span style={{ color: "#00d4aa", fontWeight: 700, fontSize: "16px" }}>WhisperBox</span>
+          <button onClick={handleLogout} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#7c8096", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", fontSize: "12px" }}>Logout</button>
         </div>
 
-        <div className="user-chip">
-          <div className="avatar">{user.username[0].toUpperCase()}</div>
-          <div>
-            <div className="username">{user.username}</div>
-            <div className="enc-badge">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              Keys active
-            </div>
-          </div>
+        {/* User */}
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "13px" }}>
+          <span style={{ color: "#00d4aa" }}>🔒 </span>
+          <span>{user.username}</span>
         </div>
 
-        <div className="search-wrap">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        {/* Search */}
+        <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <input
             type="text"
-            placeholder="Search users…"
+            placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: "100%", background: "#181b22", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px 12px", color: "#e2e4ea", fontSize: "13px", outline: "none" }}
           />
         </div>
 
-        {searchResults.length > 0 && (
-          <div className="search-results">
-            <div className="list-label">Users</div>
-            {searchResults.map((u) => (
-              <button key={u.username} className="convo-item" onClick={() => openConvo(u.username)}>
-                <div className="avatar sm">{u.username[0].toUpperCase()}</div>
-                <span>{u.username}</span>
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Search Results */}
+        {searchResults.map((u) => (
+          <button key={u.username} onClick={() => openConvo(u.username)}
+            style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "10px 16px", background: "transparent", border: "none", color: "#e2e4ea", cursor: "pointer", textAlign: "left", fontSize: "13px" }}>
+            <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#00d4aa", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700, fontSize: "13px", flexShrink: 0 }}>
+              {u.username[0].toUpperCase()}
+            </div>
+            {u.username}
+          </button>
+        ))}
 
-        <div className="convo-list">
-          {!searchQuery && <div className="list-label">Conversations</div>}
+        {/* Conversations */}
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {!searchQuery && <div style={{ padding: "6px 16px", fontSize: "10px", color: "#454858", textTransform: "uppercase", letterSpacing: "0.08em" }}>Conversations</div>}
           {!searchQuery && conversations.length === 0 && (
-            <div className="empty-convo">Search for a user to start chatting</div>
+            <div style={{ padding: "16px", fontSize: "12px", color: "#454858", textAlign: "center" }}>Search for a user to start chatting</div>
           )}
           {!searchQuery && conversations.map((c) => (
-            <button
-              key={c.other_username}
-              className={`convo-item ${activeConvo === c.other_username ? "active" : ""}`}
-              onClick={() => openConvo(c.other_username)}
-            >
-              <div className="avatar sm">{c.other_username[0].toUpperCase()}</div>
-              <div className="convo-meta">
-                <span className="convo-name">{c.other_username}</span>
-                <span className="convo-preview">🔒 encrypted</span>
+            <button key={c.other_username} onClick={() => openConvo(c.other_username)}
+              style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "10px 16px", background: activeConvo === c.other_username ? "rgba(0,212,170,0.08)" : "transparent", border: "none", color: "#e2e4ea", cursor: "pointer", textAlign: "left", fontSize: "13px" }}>
+              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#00d4aa", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700, fontSize: "13px", flexShrink: 0 }}>
+                {c.other_username[0].toUpperCase()}
+              </div>
+              <div>
+                <div>{c.other_username}</div>
+                <div style={{ fontSize: "11px", color: "#454858" }}>🔒 encrypted</div>
               </div>
             </button>
           ))}
         </div>
-      </aside>
+      </div>
 
-      <main className="chat-main">
+      {/* Main */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {!activeConvo ? (
-          <div className="chat-empty">
-            <div className="empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <h2>End-to-End Encrypted</h2>
-            <p>Select a conversation or search for a user to start messaging securely.</p>
-            <div className="enc-info">
-              <div className="enc-item"><strong>AES-GCM 256-bit</strong> message encryption</div>
-              <div className="enc-item"><strong>RSA-OAEP 2048-bit</strong> key exchange</div>
-              <div className="enc-item"><strong>Server never</strong> sees plaintext</div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", padding: "40px", textAlign: "center" }}>
+            <div style={{ fontSize: "48px" }}>🔒</div>
+            <h2 style={{ fontFamily: "sans-serif", fontSize: "20px", color: "#e2e4ea" }}>End-to-End Encrypted</h2>
+            <p style={{ fontSize: "13px", color: "#7c8096", maxWidth: "280px" }}>Search for a user to start a secure conversation.</p>
+            <div style={{ marginTop: "16px", padding: "16px 20px", background: "#111318", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", textAlign: "left" }}>
+              <div style={{ fontSize: "12px", color: "#7c8096", marginBottom: "6px" }}><strong style={{ color: "#00d4aa" }}>AES-GCM 256-bit</strong> message encryption</div>
+              <div style={{ fontSize: "12px", color: "#7c8096", marginBottom: "6px" }}><strong style={{ color: "#00d4aa" }}>RSA-OAEP 2048-bit</strong> key exchange</div>
+              <div style={{ fontSize: "12px", color: "#7c8096" }}><strong style={{ color: "#00d4aa" }}>Server never</strong> sees plaintext</div>
             </div>
           </div>
         ) : (
           <>
-            <div className="chat-header">
-              <button className="icon-btn mobile-back" onClick={() => setActiveConvo(null)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <div className="avatar">{activeConvo[0].toUpperCase()}</div>
+            {/* Chat header */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#111318", flexShrink: 0 }}>
+              <button onClick={() => setActiveConvo(null)} style={{ background: "transparent", border: "none", color: "#7c8096", cursor: "pointer", fontSize: "20px" }}>←</button>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#00d4aa", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700, flexShrink: 0 }}>
+                {activeConvo[0].toUpperCase()}
+              </div>
               <div>
-                <div className="chat-header-name">{activeConvo}</div>
-                <div className="enc-badge">
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                  End-to-end encrypted
-                </div>
+                <div style={{ fontSize: "15px", fontWeight: 600 }}>{activeConvo}</div>
+                <div style={{ fontSize: "10px", color: "#00d4aa" }}>🔒 End-to-end encrypted</div>
               </div>
             </div>
 
-            <div className="messages-area">
+            {/* Messages */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex", flexDirection: "column", gap: "6px" }}>
               {loadingMessages && messages.length === 0 && (
-                <div className="loading-msgs">Decrypting messages…</div>
+                <div style={{ textAlign: "center", fontSize: "12px", color: "#454858", padding: "20px" }}>Decrypting messages…</div>
               )}
               {messages.map((msg, i) => (
-                <div key={i} className={`message-wrap ${msg.isSender ? "sent" : "received"}`}>
-                  <div className={`bubble ${msg.isSender ? "sent" : "received"}`}>
-                    <span className="bubble-text">{msg.text}</span>
-                    <div className="bubble-meta">
-                      <span className="bubble-time">{formatTime(msg.created_at)}</span>
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                <div key={i} style={{ display: "flex", justifyContent: msg.isSender ? "flex-end" : "flex-start" }}>
+                  <div style={{ maxWidth: "65%", padding: "10px 14px", borderRadius: "16px", background: msg.isSender ? "#003d33" : "#111318", border: `1px solid ${msg.isSender ? "#005244" : "rgba(255,255,255,0.06)"}`, borderBottomRightRadius: msg.isSender ? "4px" : "16px", borderBottomLeftRadius: msg.isSender ? "16px" : "4px", wordBreak: "break-word" }}>
+                    <div style={{ fontSize: "14px", lineHeight: 1.5 }}>{msg.text}</div>
+                    <div style={{ fontSize: "10px", color: "#454858", marginTop: "4px", textAlign: "right" }}>
+                      {formatTime(msg.created_at)} 🔒
                     </div>
                   </div>
                 </div>
@@ -245,29 +230,27 @@ export default function ChatPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {error && <div className="chat-error">{error}</div>}
+            {error && <div style={{ padding: "8px 20px", fontSize: "12px", color: "#ff5c5c", background: "rgba(255,92,92,0.06)", borderTop: "1px solid rgba(255,92,92,0.1)", flexShrink: 0 }}>{error}</div>}
 
-            <form className="message-input-wrap" onSubmit={handleSend}>
+            {/* Input */}
+            <form onSubmit={handleSend} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "#111318", flexShrink: 0 }}>
               <input
                 type="text"
-                className="message-input"
                 placeholder="Type a message…"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 disabled={sending}
                 autoComplete="off"
+                style={{ flex: 1, padding: "10px 16px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "999px", background: "#181b22", color: "#e2e4ea", fontSize: "14px", outline: "none" }}
               />
-              <button type="submit" className="send-btn" disabled={sending || !messageText.trim()}>
-                {sending ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spinning"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                )}
+              <button type="submit" disabled={sending || !messageText.trim()}
+                style={{ width: "40px", height: "40px", borderRadius: "50%", border: "none", background: sending || !messageText.trim() ? "#454858" : "#00d4aa", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", cursor: sending || !messageText.trim() ? "not-allowed" : "pointer", fontSize: "16px", flexShrink: 0 }}>
+                ➤
               </button>
             </form>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
