@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const BASE_URL = "https://whisperbox.koyeb.app";
-
 const api = axios.create({ baseURL: BASE_URL });
 
 api.interceptors.request.use((config) => {
@@ -17,7 +16,6 @@ export const login = (username, password) =>
   api.post("/auth/login", { username, password });
 
 export const getProfile = () => api.get("/auth/me");
-
 export const logout = () => api.post("/auth/logout");
 
 export const searchUsers = (query) =>
