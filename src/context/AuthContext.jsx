@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { getProfile } from "../utils/api";
 
 const AuthContext = createContext(null);
 
@@ -8,11 +9,21 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("wb_token");
-    const savedUser = localStorage.getItem("wb_user");
-    if (token && savedUser) {
-      try { setUser(JSON.parse(savedUser)); } catch {}
+    if (token) {
+      getProfile()
+        .then((res) => {
+          const userData = res.data;
+          localStorage.setItem("wb_user", JSON.stringify(userData));
+          setUser(userData);
+        })
+        .catch(() => {
+          localStorage.removeItem("wb_token");
+          localStorage.removeItem("wb_user");
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const signIn = (userData, token) => {
