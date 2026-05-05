@@ -28,10 +28,10 @@ export const logout = () => api.post("/auth/logout");
 export const searchUsers = (query) =>
   api.get("/users/search", { params: { q: query } });
 
-export const getUserPublicKey = (username) =>
-  api.get(`/users/${username}/public-key`);
+export const getUserPublicKey = (userId) =>
+  api.get(`/users/${userId}/public-key`);
 
-export const listConversations = () => api.get("/messages/conversations");
+export const listConversations = () => api.get("/conversations");
 
 export const getConversation = (userId) =>
   api.get(`/messages/${userId}`);
