@@ -26,7 +26,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     loadConversations();
-    const i = setInterval(loadConversations, 5000);
+    const i = setInterval(loadConversations, 3000);
     return () => clearInterval(i);
   }, [loadConversations]);
 
@@ -37,7 +37,8 @@ export default function ChatPage() {
       const res = await getConversation(userId);
       const raw = res.data || [];
       if (!Array.isArray(raw)) { setMessages([]); return; }
-      const decrypted = await Promise.all(raw.map(async (msg) => {
+      const sorted = [...raw].reverse();
+      const decrypted = await Promise.all(sorted.map(async (msg) => {
         const isSender = msg.from_user_id === user.id;
         const payload = msg.payload || {};
         const normalizedPayload = {
@@ -61,7 +62,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!activeConvo) return;
     loadMessages(activeConvo.userId);
-    const i = setInterval(() => loadMessages(activeConvo.userId), 4000);
+    const i = setInterval(() => loadMessages(activeConvo.userId), 2000);
     return () => clearInterval(i);
   }, [activeConvo, loadMessages]);
 
