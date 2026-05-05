@@ -10,7 +10,14 @@ api.interceptors.request.use((config) => {
 });
 
 export const register = (username, password, publicKey) =>
-  api.post("/auth/register", { username, password, public_key: publicKey });
+  api.post("/auth/register", {
+    username,
+    display_name: username,
+    password,
+    public_key: publicKey,
+    wrapped_private_key: "none",
+    pbkdf2_salt: "none"
+  });
 
 export const login = (username, password) =>
   api.post("/auth/login", { username, password });
