@@ -33,13 +33,18 @@ export const getUserPublicKey = (username) =>
 
 export const listConversations = () => api.get("/messages/conversations");
 
-export const getConversation = (username) =>
-  api.get(`/messages/conversation/${username}`);
+export const getConversation = (userId) =>
+  api.get(`/messages/${userId}`);
 
-export const sendMessage = (recipientUsername, encryptedPayload) =>
-  api.post("/messages/send", {
-    recipient_username: recipientUsername,
-    encrypted_payload: JSON.stringify(encryptedPayload),
+export const sendMessage = (toUserId, encryptedPayload) =>
+  api.post("/messages", {
+    to: toUserId,
+    payload: {
+      ciphertext: encryptedPayload.ciphertext,
+      iv: encryptedPayload.iv,
+      encryptedKey: encryptedPayload.encrypted_key_for_recipient,
+      encryptedKeyForSelf: encryptedPayload.encrypted_key_for_sender,
+    }
   });
 
 export default api;
