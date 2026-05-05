@@ -31,6 +31,27 @@ async function loadKey(name) {
   });
 }
 
+// Store private key as exportable JWK in localStorage as backup
+async function storePrivateKeyBackup(username, privateKey) {
+  try {
+    const jwk = await window.crypto.subtle.exportKey("jwk", privateKey);
+    localStorage.setItem(`pk_${username}`, JSON.stringify(jwk));
+  } catch {}
+}
+
+async function getPrivateKeyFromBackup(username) {
+  try {
+    const jwkStr = localStorage.getItem(`pk_${username}`);
+    if (!jwkStr) return null;
+    const jwk = JSON.parse(jwkStr);
+    return await window.crypto.subtle.importKey(
+      "jwk", jwk,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      false, ["decrypt"]
+    );
+  } catch { return null; }
+}
+
 export async function generateKeyPair(username) {
   const keyPair = await window.crypto.subtle.generateKey(
     { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
@@ -38,18 +59,28 @@ export async function generateKeyPair(username) {
   );
   const publicKeyBuffer = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
   const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)));
+  
+  // Store in IndexedDB
   await storeKey(`${username}_private`, keyPair.privateKey);
-  await storeKey(`${username}_public_b64`, publicKeyBase64);
+  
+  // Also backup to localStorage
+  await storePrivateKeyBackup(username, keyPair.privateKey);
+  
   return { publicKeyBase64 };
 }
 
 export async function hasKeyPair(username) {
   const key = await loadKey(`${username}_private`);
-  return !!key;
+  const backup = localStorage.getItem(`pk_${username}`);
+  return !!(key || backup);
 }
 
 export async function getPrivateKey(username) {
-  return await loadKey(`${username}_private`);
+  // Try IndexedDB first
+  const key = await loadKey(`${username}_private`);
+  if (key) return key;
+  // Fall back to localStorage backup
+  return await getPrivateKeyFromBackup(username);
 }
 
 export async function importPublicKey(base64Key) {
@@ -118,12 +149,12 @@ export async function decryptMessage(payload, username, isSender) {
 }
 
 export async function deleteKeys(username) {
+  localStorage.removeItem(`pk_${username}`);
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
     store.delete(`${username}_private`);
-    store.delete(`${username}_public_b64`);
     tx.oncomplete = resolve;
     tx.onerror = (e) => reject(e.target.error);
   });
