@@ -23,15 +23,17 @@ export default function AuthPage() {
         const { publicKeyBase64 } = await generateKeyPair(username);
         setStatus("Creating account…");
         const res = await register(username, password, publicKeyBase64);
-        const { access_token, user } = res.data;
+        const access_token = res.data.access_token || res.data.token;
+        const user = res.data.user || { username };
         signIn(user, access_token);
       } else {
         setStatus("Authenticating…");
         const res = await login(username, password);
-        const { access_token, user } = res.data;
+        const access_token = res.data.access_token || res.data.token;
+        const user = res.data.user || { username };
         const hasKeys = await hasKeyPair(username);
         if (!hasKeys) {
-          setError("No encryption keys found on this device. Please register again or use the device you registered on.");
+          setError("No encryption keys found on this device. Please register again.");
           setLoading(false);
           setStatus("");
           return;
