@@ -34,7 +34,7 @@ export const getConversation = (username) =>
 export const sendMessage = (recipientUsername, encryptedPayload) =>
   api.post("/messages/send", {
     recipient_username: recipientUsername,
-    encrypted_payload: encryptedPayload,
+    encrypted_payload: JSON.stringify(encryptedPayload),
   });
 
 export default api;
