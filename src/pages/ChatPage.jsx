@@ -62,7 +62,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!activeConvo) return;
     loadMessages(activeConvo.userId);
-    const i = setInterval(() => loadMessages(activeConvo.userId), 2000);
+    const i = setInterval(() => loadMessages(activeConvo.userId), 3000);
     return () => clearInterval(i);
   }, [activeConvo, loadMessages]);
 
@@ -103,8 +103,8 @@ export default function ChatPage() {
       const encrypted = await encryptMessage(messageText, recipientPublicKey, senderPublicKey);
       await sendMessage(activeConvo.userId, encrypted);
       setMessageText("");
-      await loadMessages(activeConvo.userId);
-      await loadConversations();
+      setTimeout(() => loadMessages(activeConvo.userId), 1000);
+setTimeout(() => loadConversations(), 1000);
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to send");
     } finally {
