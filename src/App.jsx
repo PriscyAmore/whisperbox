@@ -7,7 +7,7 @@ export default function App() {
   const { user, loading } = useAuth();
 
   if (loading) return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:"#0a0c10", color:"#00d4aa", fontSize:"15px" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", width:"100vw", background:"#0a0c10", color:"#00d4aa", fontSize:"15px", fontFamily:"system-ui,sans-serif" }}>
       Loading…
     </div>
   );
