@@ -34,7 +34,7 @@ export const getUserPublicKey = (userId) =>
 export const listConversations = () => api.get("/conversations");
 
 export const getConversation = (userId) =>
-  api.get(`/messages/${userId}`);
+  api.get(`/conversations/${userId}/messages`);
 
 export const sendMessage = (toUserId, encryptedPayload) =>
   api.post("/messages", {
