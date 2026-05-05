@@ -39,7 +39,7 @@ export default function ChatPage() {
       if (!Array.isArray(raw)) { setMessages([]); return; }
       const myId = user.id;
       const decrypted = await Promise.all(raw.map(async (msg) => {
-        const isSender = msg.from_user_id === myId;
+        const isSender = msg.from_user_id === user.id;
         let payload = msg.payload;
         if (typeof payload === "string") { try { payload = JSON.parse(payload); } catch { payload = {}; } }
         const normalizedPayload = {
