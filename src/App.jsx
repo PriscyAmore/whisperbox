@@ -3,20 +3,19 @@ import { useAuth } from "./context/AuthContext";
 import AuthPage from "./pages/AuthPage";
 import ChatPage from "./pages/ChatPage";
 
-function PrivateRoute({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="splash">Initializing encryption…</div>;
-  return user ? children : <Navigate to="/auth" replace />;
-}
-
 export default function App() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="splash">Initializing encryption…</div>;
+
+  if (loading) return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:"#0a0c10", color:"#00d4aa", fontSize:"15px" }}>
+      Loading…
+    </div>
+  );
 
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
-      <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+      <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" replace />} />
+      <Route path="/" element={user ? <ChatPage /> : <Navigate to="/auth" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
