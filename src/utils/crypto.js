@@ -1,6 +1,8 @@
 const DB_NAME = "WhisperBoxKeys";
 const DB_VERSION = 1;
 const STORE_NAME = "keys";
+const KEY_NAME = "current_private_key";
+const KEY_NAME_LS = "wb_private_key_jwk";
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -11,45 +13,24 @@ function openDB() {
   });
 }
 
-async function storeKey(name, key) {
+async function storeInDB(key, value) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).put(key, name);
+    tx.objectStore(STORE_NAME).put(value, key);
     tx.oncomplete = resolve;
     tx.onerror = (e) => reject(e.target.error);
   });
 }
 
-async function loadKey(name) {
+async function loadFromDB(key) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).get(name);
+    const req = tx.objectStore(STORE_NAME).get(key);
     req.onsuccess = (e) => resolve(e.target.result);
     req.onerror = (e) => reject(e.target.error);
   });
-}
-
-// Store private key as exportable JWK in localStorage as backup
-async function storePrivateKeyBackup(username, privateKey) {
-  try {
-    const jwk = await window.crypto.subtle.exportKey("jwk", privateKey);
-    localStorage.setItem(`pk_${username}`, JSON.stringify(jwk));
-  } catch {}
-}
-
-async function getPrivateKeyFromBackup(username) {
-  try {
-    const jwkStr = localStorage.getItem(`pk_${username}`);
-    if (!jwkStr) return null;
-    const jwk = JSON.parse(jwkStr);
-    return await window.crypto.subtle.importKey(
-      "jwk", jwk,
-      { name: "RSA-OAEP", hash: "SHA-256" },
-      false, ["decrypt"]
-    );
-  } catch { return null; }
 }
 
 export async function generateKeyPair(username) {
@@ -59,28 +40,44 @@ export async function generateKeyPair(username) {
   );
   const publicKeyBuffer = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
   const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)));
-  
-  // Store in IndexedDB
-  await storeKey(`${username}_private`, keyPair.privateKey);
-  
-  // Also backup to localStorage
-  await storePrivateKeyBackup(username, keyPair.privateKey);
-  
+
+  // Store private key in IndexedDB
+  await storeInDB(KEY_NAME, keyPair.privateKey);
+
+  // Also store as JWK in localStorage for persistence
+  const jwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+  localStorage.setItem(KEY_NAME_LS, JSON.stringify(jwk));
+
   return { publicKeyBase64 };
 }
 
 export async function hasKeyPair(username) {
-  const key = await loadKey(`${username}_private`);
-  const backup = localStorage.getItem(`pk_${username}`);
-  return !!(key || backup);
+  const fromDB = await loadFromDB(KEY_NAME);
+  const fromLS = localStorage.getItem(KEY_NAME_LS);
+  return !!(fromDB || fromLS);
 }
 
 export async function getPrivateKey(username) {
   // Try IndexedDB first
-  const key = await loadKey(`${username}_private`);
-  if (key) return key;
-  // Fall back to localStorage backup
-  return await getPrivateKeyFromBackup(username);
+  try {
+    const key = await loadFromDB(KEY_NAME);
+    if (key) return key;
+  } catch {}
+
+  // Fall back to localStorage JWK
+  try {
+    const jwkStr = localStorage.getItem(KEY_NAME_LS);
+    if (jwkStr) {
+      const jwk = JSON.parse(jwkStr);
+      return await window.crypto.subtle.importKey(
+        "jwk", jwk,
+        { name: "RSA-OAEP", hash: "SHA-256" },
+        false, ["decrypt"]
+      );
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function importPublicKey(base64Key) {
@@ -122,13 +119,13 @@ export async function decryptMessage(payload, username, isSender) {
   try {
     const privateKey = await getPrivateKey(username);
     if (!privateKey) return "[no private key]";
-    
+
     const encKeyB64 = isSender
       ? payload.encrypted_key_for_sender
       : payload.encrypted_key_for_recipient;
-    
+
     if (!encKeyB64) return "[missing key]";
-    
+
     const encKeyBytes = Uint8Array.from(atob(encKeyB64), c => c.charCodeAt(0));
     const aesKeyBytes = await window.crypto.subtle.decrypt(
       { name: "RSA-OAEP" }, privateKey, encKeyBytes
@@ -149,13 +146,14 @@ export async function decryptMessage(payload, username, isSender) {
 }
 
 export async function deleteKeys(username) {
-  localStorage.removeItem(`pk_${username}`);
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    store.delete(`${username}_private`);
-    tx.oncomplete = resolve;
-    tx.onerror = (e) => reject(e.target.error);
-  });
+  localStorage.removeItem(KEY_NAME_LS);
+  try {
+    const db = await openDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).delete(KEY_NAME);
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error);
+    });
+  } catch {}
 }
